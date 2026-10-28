@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Conspiracy Detective</title>
+<style>
+:root{--bg:#ececec;--card:#fff;--ink:#141414;--muted:#555;--line:#cfcfcf;--acc:#ffd400;--on-acc:#141414;--ok:#1b7f3b;--softok:#dff3e4;--bad:#c62828;--softbad:#fde4e4;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111;--card:#1b1b1b;--ink:#f2f2f2;--muted:#a8a8a8;--line:#3a3a3a;--ok:#5fd37e;--softok:#16301d;--bad:#ff6b6b;--softbad:#3a1717;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#111;--card:#1b1b1b;--ink:#f2f2f2;--muted:#a8a8a8;--line:#3a3a3a;--ok:#5fd37e;--softok:#16301d;--bad:#ff6b6b;--softbad:#3a1717;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Courier New",ui-monospace,monospace;line-height:1.55}
+.tape{height:14px;background:repeating-linear-gradient(-45deg,#ffd400 0 14px,#141414 14px 28px)}
+main{max-width:640px;margin:0 auto;padding:24px 18px 48px}
+.eyebrow{font-size:12px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+h1{font-size:32px;line-height:1.1;margin:6px 0 4px}
+.sub{color:var(--muted);margin:0 0 20px;font-size:14px}
+.card{background:var(--card);border:2px solid var(--line);border-radius:10px;padding:20px}
+button{font:inherit;font-size:15px;cursor:pointer;border-radius:8px;padding:12px 16px;border:2px solid var(--line);background:var(--card);color:var(--ink)}
+button:hover:not(:disabled){border-color:var(--ink)}
+.pri{background:var(--acc);border-color:var(--acc);color:var(--on-acc);font-weight:bold}
+.pri:disabled{opacity:.6}
+button:disabled{cursor:default}
+.lab{font-size:12px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin:0 0 6px}
+.steps{margin:0 0 16px;padding-left:20px;font-size:14px}
+.steps li{margin-bottom:6px}
+.ex{background:var(--bg);border-radius:8px;padding:14px;margin-bottom:18px;font-size:14px}
+.ex p{margin:0 0 8px}
+.ex .c{padding-left:10px;border-left:4px solid var(--acc);margin-bottom:8px}
+.ex small{display:block;color:var(--muted)}
+.themes{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 18px}
+.t{padding:8px 12px;font-size:14px;border-radius:99px}
+.t[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:var(--on-acc);font-weight:bold}
+.hud{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:14px;letter-spacing:1px;text-transform:uppercase}
+.hud b{color:var(--ink)}
+h2{font-size:22px;line-height:1.25;margin:0 0 6px}
+.hint{color:var(--muted);font-size:14px;margin:0 0 16px}
+.clues{list-style:none;margin:0 0 12px;padding:0}
+.cl{padding:8px 0 8px 12px;border-left:4px solid var(--acc);margin-bottom:8px;font-size:15px}
+.sus{display:grid;gap:8px;margin:8px 0 16px}
+.s{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 12px;border:2px solid var(--line);border-radius:8px;background:var(--card)}
+.s .acts{display:flex;gap:6px;flex-shrink:0}
+.mini{padding:6px 10px;font-size:13px}
+.s.out{border-style:dashed}
+.s.out .n{text-decoration:line-through;color:var(--muted)}
+.s.ok{background:var(--softok);border-color:var(--ok)}
+.s.bad{background:var(--softbad);border-color:var(--bad)}
+.res{margin-top:16px;padding-top:14px;border-top:2px dashed var(--line)}
+.big{font-size:18px;font-weight:bold;margin:0 0 4px}
+.good{color:var(--ok)}.nope{color:var(--bad)}
+.who{color:var(--muted);font-size:14px;margin:0 0 14px}
+.recap .cl{font-size:14px;color:var(--muted)}
+.score{font-size:44px;font-weight:bold;margin:6px 0}
+.status{min-height:20px;font-size:13px;color:var(--muted);margin:12px 0 0}
+#rv{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,0);transition:background .8s;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}
+#rv.dim{background:rgba(0,0,0,.92)}
+#cf{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
+#bars{position:absolute;inset:0;display:flex;justify-content:space-between;padding:0 4%;z-index:1;pointer-events:none}
+#bars i{display:block;width:3.2%;height:100%;background:linear-gradient(90deg,#3a3a3a,#9a9a9a 45%,#3a3a3a);transform:translateY(-110%);transition:transform .35s cubic-bezier(.5,1.6,.6,1)}
+#rv.jail #bars i{transform:translateY(0)}
+.rvbox{position:relative;z-index:2;padding:20px;max-width:560px}
+.rvsm{color:#ccc;font-size:15px;letter-spacing:3px;text-transform:uppercase;margin:0 0 8px;min-height:22px}
+.rvname{color:#fff;font-size:34px;font-weight:bold;margin:0 0 14px;line-height:1.2}
+.rvbig{font-size:44px;font-weight:bold;margin:0 0 18px;padding:8px 16px;background:#ffd400;color:#141414;display:inline-block;transform:rotate(-3deg);line-height:1.15}
+.rvbig.lost{background:#c62828;color:#fff}
+.pulse{animation:pulse .45s infinite alternate}
+@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.08)}}
+#rv.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translate(0)}20%{transform:translate(-8px,4px)}40%{transform:translate(8px,-4px)}60%{transform:translate(-6px,2px)}80%{transform:translate(6px,-2px)}}
+[hidden]{display:none!important}
+@media (max-width:480px){h1{font-size:26px}}
+</style>
+</head>
+<body>
+<div class="tape" aria-hidden="true"></div>
+<main>
+  <div class="eyebrow">Do not cross · Everything here is fake</div>
+  <h1>Conspiracy Detective</h1>
+  <p class="sub">Work out who’s innocent. Catch the culprit.</p>
+
+  <section class="card" id="start">
+    <p class="lab">How to play</p>
+    <ol class="steps">
+      <li>Every case has 5 suspects and exactly one culprit.</li>
+      <li>You start with 2 clues. Each clue proves one innocent suspect couldn’t have done it, but it never says who. You have to work it out.</li>
+      <li>Tap “Rule out” to cross people off as you go (just your notes). Tap “Accuse” when you’re ready.</li>
+      <li>Right with 2 clues = 3 points. Reveal a 3rd clue and it’s worth 2, a 4th clue and it’s worth 1. Wrong = 0.</li>
+    </ol>
+    <div class="ex">
+      <p class="lab">Example case</p>
+      <p><b>Who ate the last slice of pizza?</b></p>
+      <p>Suspects: The dog · The roommate · The pizza guy · Grandma · The neighbor</p>
+      <div class="c">Clue 1: “No paw prints and no drool anywhere near the kitchen.”<small>Dogs leave those. So it wasn’t The dog.</small></div>
+      <div class="c">Clue 2: “The delivery receipt shows he left at 8:05pm, and the pizza was still full at 9.”<small>So it wasn’t The pizza guy.</small></div>
+      <p>You start with these 2 clues. Three suspects are left: The roommate, Grandma, The neighbor. You could guess now for 3 points, or reveal more:</p>
+      <div class="c">Clue 3: “Her cruise ship didn’t dock until this morning.”<small>It wasn’t Grandma. Now 2 are left (worth 2 points).</small></div>
+      <div class="c">Clue 4: “He was on a video call with 40 coworkers all evening.”<small>It wasn’t The neighbor. Only The roommate is left (worth 1 point).</small></div>
+    </div>
+    <p class="lab">Pick a setting</p>
+    <div class="themes" id="themes"></div>
+    <button class="pri" id="go">Start investigation</button>
+  </section>
+
+  <section class="card" id="game" hidden aria-live="polite">
+    <div class="hud"><span>Case <b id="rnum">1</b>/<b id="rtot">5</b></span><span>Worth <b id="worth">3</b></span><span>Score <b id="score">0</b></span></div>
+    <button class="mini" id="snd" style="margin-bottom:12px">Sound: on</button>
+    <h2 id="topic"></h2>
+    <p class="hint" id="hint">Read the clues. Tap “Rule out” on anyone you think is innocent, then tap “Accuse” on the culprit.</p>
+    <p class="lab">Clues</p>
+    <ul class="clues" id="clues"></ul>
+    <button id="more">Reveal clue 3 (−1 pt)</button>
+    <p class="lab" style="margin-top:18px">Suspects</p>
+    <div class="sus" id="sus"></div>
+    <div class="res" id="res" hidden>
+      <p class="big" id="verdict"></p>
+      <p class="big" id="rtitle" style="font-size:16px"></p>
+      <p class="who" id="rwho"></p>
+      <p class="lab">What the clues meant</p>
+      <ul class="clues recap" id="recap"></ul>
+      <button class="pri" id="next">Next case</button>
+    </div>
+  </section>
+
+  <section class="card" id="end" hidden>
+    <p class="lab">Investigation complete</p>
+    <div class="score"><span id="fscore">0</span> / <span id="fmax">15</span></div>
+    <h2 id="rank"></h2>
+    <button class="pri" id="again">Play again</button>
+  </section>
+  <p class="status" id="status"></p>
+</main>
+<div id="rv" hidden aria-live="assertive">
+  <canvas id="cf"></canvas>
+  <div id="bars"></div>
+  <div class="rvbox">
+    <p class="rvsm" id="rvsm"></p>
+    <p class="rvname" id="rvname"></p>
+    <p class="rvbig" id="rvbig" hidden></p><br>
+    <button class="pri" id="rvgo" hidden>See the case file</button>
+  </div>
+</div>
+
+<script>
+var $=function(id){return document.getElementById(id)};
+var canned=[
+{topic:"Who keeps stealing the socks?",title:"The Great Sock Heist",culprit:"The dryer",why:"It quietly keeps one sock from almost every load.",clues:[
+{text:"Not one wool sweater in the closet has a hole, and there’s no powdery dust in any drawer.",clears:"A family of moths"},
+{text:"A technician opened the machine that sloshes and spins the soapy laundry and found no socks inside.",clears:"The washing machine"},
+{text:"Socks kept vanishing during the two weeks the other tenant was abroad.",clears:"Your roommate"},
+{text:"There’s no drool on the floor and no paw prints anywhere near the laundry room.",clears:"The dog"}]},
+{topic:"Who keeps moving the TV remote?",title:"The Remote Reshuffle",culprit:"The cat",why:"It bats the remote off the table at 3am.",clues:[
+{text:"The remote moved at noon, while the other tenant was at work and the door was locked.",clears:"Your roommate"},
+{text:"A paranormal meter left running all week never beeped once.",clears:"A shy ghost"},
+{text:"Dust lines show the soft seat pieces haven’t shifted at all.",clears:"The couch cushions"},
+{text:"A camera across the hall shows that apartment’s door never opened.",clears:"The upstairs neighbor"}]},
+{topic:"Who is slowing the Wi-Fi at 9pm?",title:"The 9pm Wi-Fi Dip",culprit:"Your neighbor",why:"They start a giant-TV stream at exactly 9pm.",clues:[
+{text:"A brand-new box with blinking lights was installed and the slowdown stayed exactly the same.",clears:"The router"},
+{text:"The outdoor cable has no teeth marks and nothing was chewed.",clears:"A raccoon"},
+{text:"It slows down just as much on nights with no moon at all.",clears:"The moon"},
+{text:"Other devices in the house slow down too, even with this one switched off.",clears:"Your own phone"}]},
+{topic:"Who keeps jamming the printer?",title:"The Paper Jam Accord",culprit:"The Printer Union",why:"It calls a strike whenever someone is running late.",clues:[
+{text:"The metal clamp sat locked in a drawer all week and the jams kept happening.",clears:"The stapler"},
+{text:"Jams happen on the second floor, and the haunting only reaches the third.",clears:"The intern ghost"},
+{text:"The printer was cut off from the internet, so nothing could control it remotely.",clears:"Ink companies"},
+{text:"Brand-new paper from a different supplier jammed just the same.",clears:"A bad paper batch"}]},
+{topic:"Who keeps holding up the elevator?",title:"The Lift Delay Plot",culprit:"A retired elevator operator",why:"He still presses buttons from his apartment on the fifth floor.",clues:[
+{text:"The other way up has no buttons and cannot press anything.",clears:"The stairs"},
+{text:"The delays only happen on the fifth floor, while the pull toward the ground is the same everywhere.",clears:"Gravity"},
+{text:"The delays continued during the two weeks the cleaner was on vacation.",clears:"The janitor"},
+{text:"The door to the roof has been bolted shut since spring.",clears:"The rooftop pigeons"}]}
+];
+var settings=["Anything goes","School","Office","Kitchen","Road trip","Airport","Gym","Supermarket","Apartment building","Beach","Library","Camping","Birthday party","Wedding","Movie theater","Public transport","Hotel","Theme park","Space station","Coffee shop"];
+var picked="Anything goes";
+var cases=[],idx=0,score=0,k=2,answered=false,sel="",order=[],marked={};
+
+settings.forEach(function(s){
+  var b=document.createElement("button");b.className="t";b.textContent=s;
+  b.setAttribute("aria-pressed",s===picked?"true":"false");
+  b.onclick=function(){picked=s;Array.prototype.forEach.call($("themes").children,function(x){x.setAttribute("aria-pressed",x===b?"true":"false")})};
+  $("themes").appendChild(b);
+});
+
+function show(id){["start","game","end"].forEach(function(s){$(s).hidden=(s!==id)})}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function valid(c){
+  if(!c||!c.topic||!c.title||!c.culprit||!c.why||!Array.isArray(c.clues)||c.clues.length<4)return false;
+  var seen={};seen[String(c.culprit).toLowerCase()]=1;
+  for(var i=0;i<4;i++){var q=c.clues[i];if(!q||!q.text||!q.clears)return false;var n=String(q.clears).toLowerCase();if(seen[n])return false;seen[n]=1}
+  return true;
+}
+
+function prompt_(theme){
+  return "You write absurd, obviously fake, deadpan conspiracy mysteries for a comedy detective game. Create 5 different cases about mundane everyday annoyances"+(theme?", all set in or around this location: "+theme:"")+". Rules: culprits and suspects are unlikely, silly things (animals, objects, fake organizations, everyday people like a roommate or neighbor); never real people, real companies, real events, politics, religions, or health claims. If the theme touches anything real or sensitive, use a harmless silly angle instead. Each case has exactly 5 suspects: 1 culprit and 4 innocents. For each case give: topic (a short question like 'Who keeps stealing the socks?', max 8 words), title (max 6 words), culprit (max 6 words), why (one short sentence on how the culprit did it), and clues (exactly 4). Each clue is one sentence of evidence that proves one specific innocent suspect could NOT have done it, and its 'clears' field holds that suspect's name (max 6 words). The 4 'clears' names must be 4 different innocents, all different from the culprit. IMPORTANT: clues must be niche and indirect. Never name the suspect a clue rules out, and never use the word they are known by; instead use an odd concrete detail (a time, a place, a missing trace, an alibi) that the player must think about to connect to that one suspect. A clue must rule out only its one suspect and no other. No clue may rule out or point toward the culprit, and the culprit must never appear in 'clears'. Return only a JSON array of 5 objects with keys: topic, title, culprit, why, clues (array of {text, clears}).";
+}
+
+async function start(){
+  var theme=(picked==="Anything goes")?"":picked;
+  $("go").disabled=true;$("status").textContent="Collecting evidence…";
+  var sample=null,fell="";
+  try{if(window.claude&&claude.use){sample=await claude.use("sample")}}catch(e){sample=null}
+  cases=[];
+  if(sample){
+    try{
+      var d=await sample.json(prompt_(theme),{cache:false});
+      if(d&&d.cases)d=d.cases;
+      if(Array.isArray(d))cases=d.filter(valid).slice(0,5);
+      if(cases.length<3)throw {code:"bad"};
+    }catch(e){cases=[];fell=(e&&e.code==="rate_limited")?"Too many requests. Using pre-written cases.":"Couldn’t reach HQ. Using pre-written cases."}
+  }else{fell="Offline mode: using pre-written cases."}
+  if(!cases.length)cases=shuffle(canned);
+  idx=0;score=0;
+  $("go").disabled=false;$("status").textContent=(fell&&theme)?fell+" They won’t match your setting.":fell;
+  $("rtot").textContent=cases.length;
+  show("game");round();
+}
+
+function round(){
+  var c=cases[idx];
+  k=2;answered=false;sel="";marked={};
+  order=shuffle([c.culprit].concat(c.clues.slice(0,4).map(function(q){return q.clears})));
+  $("res").hidden=true;$("hint").hidden=false;
+  draw();
+}
+
+function draw(){
+  var c=cases[idx],ul=$("clues");
+  $("rnum").textContent=idx+1;$("score").textContent=score;$("topic").textContent=c.topic;
+  ul.textContent="";
+  c.clues.slice(0,k).forEach(function(q,i){
+    var li=document.createElement("li");li.className="cl";li.textContent="Clue "+(i+1)+": "+q.text;ul.appendChild(li);
+  });
+  var box=$("sus");box.textContent="";
+  order.forEach(function(name){
+    var r=document.createElement("div");r.className="s";
+    var n=document.createElement("span");n.className="n";n.textContent=name;r.appendChild(n);
+    if(answered){
+      if(name===c.culprit)r.classList.add("ok");else if(name===sel)r.classList.add("bad");
+    }else{
+      if(marked[name])r.classList.add("out");
+      var a=document.createElement("span");a.className="acts";
+      var ro=document.createElement("button");ro.className="mini";ro.textContent=marked[name]?"Undo":"Rule out";
+      ro.onclick=function(){marked[name]=!marked[name];draw()};
+      var ac=document.createElement("button");ac.className="mini pri";ac.textContent="Accuse";
+      ac.onclick=function(){accuse(name)};
+      a.appendChild(ro);a.appendChild(ac);r.appendChild(a);
+    }
+    box.appendChild(r);
+  });
+  $("worth").textContent=5-k;
+  $("more").hidden=answered||k>=4;
+  $("more").textContent="Reveal clue "+(k+1)+" (−1 pt)";
+}
+
+function accuse(name){
+  if(answered)return;
+  var c=cases[idx],right=(name===c.culprit),gain=right?5-k:0;
+  answered=true;sel=name;score+=gain;
+  reveal(name,right,function(){after(c,right,gain)});
+}
+
+function after(c,right,gain){
+  draw();
+  var v=$("verdict");
+  v.textContent=right?"Case solved! +"+gain:"Wrong suspect. +0";
+  v.className="big "+(right?"good":"nope");
+  $("rtitle").textContent=c.title;
+  $("rwho").textContent="The culprit: "+c.culprit+". "+c.why;
+  var rc=$("recap");rc.textContent="";
+  c.clues.slice(0,4).forEach(function(q,i){
+    var li=document.createElement("li");li.className="cl";
+    li.textContent="Clue "+(i+1)+" ruled out: "+q.clears+(i>=k?" (you didn’t reveal this one)":"");
+    rc.appendChild(li);
+  });
+  $("next").textContent=(idx>=cases.length-1)?"See results":"Next case";
+  $("hint").hidden=true;
+  $("res").hidden=false;
+  $("res").scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+var muted=false,AC=null,raf=0;
+function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==="suspended"){try{AC.resume()}catch(e){}}return AC}
+function tone(f,t0,d,type,v,f2){
+  var c=ac();if(!c||muted)return;
+  try{
+    var o=c.createOscillator(),g=c.createGain(),n=c.currentTime+t0;
+    o.type=type||"sine";o.frequency.setValueAtTime(f,n);
+    if(f2)o.frequency.exponentialRampToValueAtTime(f2,n+d);
+    g.gain.setValueAtTime(v||.15,n);g.gain.exponentialRampToValueAtTime(.001,n+d);
+    o.connect(g);g.connect(c.destination);o.start(n);o.stop(n+d+.02);
+  }catch(e){}
+}
+function drumroll(s){var t=0;while(t<s){var p=t/s;tone(150-50*p,t,.09,"triangle",.1+.3*p,70);t+=Math.max(.045,.17-.12*p)}tone(80,s,.6,"triangle",.5,35)}
+function clang(){tone(420,0,.6,"square",.16,380);tone(635,0,.6,"square",.1,600);tone(90,0,.35,"sine",.45,50)}
+function fanfare(){[523,659,784,1047].forEach(function(f,i){tone(f,i*.12,.35,"triangle",.18)})}
+function sad(){tone(280,0,1,"sawtooth",.14,90);tone(140,0,1,"sawtooth",.08,60)}
+function confetti(){
+  var cv=$("cf"),x=cv.getContext("2d");cv.width=innerWidth;cv.height=innerHeight;
+  var cols=["#ffd400","#ffffff","#5fd37e","#ff6b6b","#4aa8ff","#ff8bd0"],P=[];
+  for(var i=0;i<170;i++)P.push({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*.7,w:6+Math.random()*7,h:8+Math.random()*10,vy:2+Math.random()*3.5,vx:-1+Math.random()*2,r:Math.random()*6.28,vr:-.2+Math.random()*.4,c:cols[i%cols.length]});
+  var end=Date.now()+6000;
+  (function f(){
+    x.clearRect(0,0,cv.width,cv.height);
+    P.forEach(function(p){p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.w/2,-p.h/2,p.w,p.h);x.restore()});
+    if(Date.now()<end&&!$("rv").hidden)raf=requestAnimationFrame(f);else x.clearRect(0,0,cv.width,cv.height);
+  })();
+}
+function reveal(name,right,done){
+  var rv=$("rv"),nm=$("rvname"),big=$("rvbig"),go=$("rvgo");
+  nm.textContent=name;nm.className="rvname pulse";nm.style.display="";
+  $("rvsm").textContent="You accuse…";
+  big.hidden=true;big.className="rvbig";go.hidden=true;
+  var bars=$("bars");bars.textContent="";
+  for(var i=0;i<9;i++){var b=document.createElement("i");b.style.transitionDelay=(i*35)+"ms";bars.appendChild(b)}
+  rv.className="";rv.hidden=false;void rv.offsetWidth;rv.classList.add("dim");
+  drumroll(2.3);
+  setTimeout(function(){nm.className="rvname";$("rvsm").textContent=""},2400);
+  setTimeout(function(){
+    if(right){
+      rv.classList.add("jail");clang();
+      setTimeout(function(){rv.classList.add("shake");big.textContent="CAUGHT IN 4K";big.hidden=false;fanfare();confetti()},380);
+    }else{
+      nm.style.display="none";big.textContent="YOU LOST";big.className="rvbig lost";big.hidden=false;sad();
+    }
+    setTimeout(function(){go.hidden=false},right?1400:900);
+  },3100);
+  go.onclick=function(){cancelAnimationFrame(raf);rv.hidden=true;rv.className="";done()};
+}
+$("snd").onclick=function(){muted=!muted;$("snd").textContent="Sound: "+(muted?"off":"on")};
+
+function finish(){
+  var max=3*cases.length,r=score/max;
+  $("fscore").textContent=score;$("fmax").textContent=max;
+  $("rank").textContent=r>=0.85?"Chief Conspiracy Officer":r>=0.6?"Senior Agent":r>=0.35?"Field Agent":"Rookie (the pigeons are laughing)";
+  show("end");
+}
+
+$("go").onclick=start;
+$("more").onclick=function(){if(k<4&&!answered){k++;draw()}};
+$("next").onclick=function(){if(idx>=cases.length-1){finish()}else{idx++;round()}};
+$("again").onclick=function(){$("status").textContent="";show("start")};
+</script>
+</body>
+</html>
